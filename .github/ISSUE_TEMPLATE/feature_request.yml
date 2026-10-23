@@ -1,0 +1,26 @@
+name: 기능·개선 제안
+description: Hack LMS에 추가하거나 바꾸고 싶은 기능을 제안해주세요.
+labels: [enhancement]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        비슷한 제안이 이미 등록되어 있는지 먼저 확인해주세요.
+        해결 방법이나 구현 방법을 몰라도 괜찮습니다. Hack LMS가 해결해주었으면 하는 불편을 설명해주세요.
+  - type: textarea
+    id: problem
+    attributes:
+      label: 어떤 점이 불편한가요?
+      description: LMS 또는 Hack LMS를 사용하는 어떤 상황에서 불편을 겪었는지 설명해주세요.
+    validations:
+      required: true
+  - type: textarea
+    id: suggestion
+    attributes:
+      label: 원하는 동작이나 해결 방법
+      description: Hack LMS에 추가하거나 바꾸고 싶은 동작이 있다면 적어주세요. 구체적인 방법이 떠오르지 않으면 비워두셔도 됩니다.
+  - type: textarea
+    id: references
+    attributes:
+      label: 참고 자료
+      description: 참고 화면이나 사례가 있다면 첨부해주세요. 토큰, 쿠키, 학번 등 개인정보와 개인화된 URL은 제거해주세요.
