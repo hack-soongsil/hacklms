@@ -4,7 +4,7 @@
     "description": "Utilies for SSU LMS",
     "version": "1.3.2",
     "icons": {
-        "128": "canvas.png"
+        "128": "images/canvas.png"
     },
     "permissions": [
         "scripting",
@@ -19,16 +19,16 @@
         "*://commons.ssu.ac.kr/*"
     ],
     "action": {
-        "default_popup": "popup/index.html"
+        "default_popup": "src/popup/index.html"
     },
     "content_scripts": [
         {
             "matches": ["https://commons.ssu.ac.kr/*"],
-            "js": ["video-iframe-listener.js"],
+            "js": ["src/video-iframe-listener.js"],
             "all_frames": true
         }
     ],
     "background": {
-        "service_worker": "background.js"
+        "service_worker": "src/background.js"
     }
 }
