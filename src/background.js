@@ -1,7 +1,10 @@
+// Chrome service worker; Safari loads platform.js through background.scripts.
+if (typeof importScripts === 'function') importScripts('platform.js');
+
 const REFERER_RULE_ID = 1;
 
 async function setupRefererRule() {
-    await chrome.declarativeNetRequest.updateDynamicRules({
+    await platform.updateDynamicRules({
         removeRuleIds: [REFERER_RULE_ID],
         addRules: [{
             id: REFERER_RULE_ID,
@@ -20,8 +23,8 @@ async function setupRefererRule() {
     });
 }
 
-chrome.runtime.onInstalled.addListener(setupRefererRule);
-chrome.runtime.onStartup.addListener(setupRefererRule);
+platform.api.runtime.onInstalled.addListener(setupRefererRule);
+platform.api.runtime.onStartup.addListener(setupRefererRule);
 
 // === Captured MP4 URL cache (tabId → URL) ===
 // MV3 service worker가 종료되어도 캐시가 유지되도록 storage.session에도 보관한다.
@@ -53,7 +56,7 @@ function isCapturableMainVideo(url) {
 
 function storeCapturedMp4(tabId, url) {
     capturedMp4Urls.set(tabId, url);
-    chrome.storage.session.set({ [capturedMp4Key(tabId)]: url });
+    platform.sessionStorage.set({ [capturedMp4Key(tabId)]: url });
 }
 
 async function getCapturedMp4(tabId) {
@@ -62,19 +65,19 @@ async function getCapturedMp4(tabId) {
     if (memoryValue) capturedMp4Urls.delete(tabId);
 
     const key = capturedMp4Key(tabId);
-    const stored = await chrome.storage.session.get(key);
+    const stored = await platform.sessionStorage.get(key);
     const url = stored[key] ?? null;
     if (url && isDownloadableMp4(url)) {
         capturedMp4Urls.set(tabId, url);
         return url;
     }
-    if (url) await chrome.storage.session.remove(key);
+    if (url) await platform.sessionStorage.remove(key);
     return null;
 }
 
 function clearCapturedMp4(tabId) {
     capturedMp4Urls.delete(tabId);
-    chrome.storage.session.remove(capturedMp4Key(tabId));
+    platform.sessionStorage.remove(capturedMp4Key(tabId));
 }
 
 function sanitizeDownloadFilename(name) {
@@ -85,7 +88,7 @@ function sanitizeDownloadFilename(name) {
         .slice(0, 204) || 'video.mp4';
 }
 
-chrome.webRequest.onBeforeRequest.addListener(
+platform.onBeforeRequest(
     (details) => {
         const { tabId, url } = details;
         if (tabId < 0) return;
@@ -98,25 +101,25 @@ chrome.webRequest.onBeforeRequest.addListener(
 );
 
 // canvas 페이지가 새 main_frame 로드되면 그 탭 캐시 클리어
-chrome.webRequest.onBeforeRequest.addListener(
+platform.onBeforeRequest(
     (details) => {
         if (details.tabId >= 0) clearCapturedMp4(details.tabId);
     },
     { urls: ['*://canvas.ssu.ac.kr/*'], types: ['main_frame'] }
 );
 
-chrome.tabs.onRemoved.addListener((tabId) => {
+platform.api.tabs.onRemoved.addListener((tabId) => {
     clearCapturedMp4(tabId);
 });
 
 // Canvas가 SPA 방식으로 다른 강의로 이동해도 이전 영상 URL을 사용하지 않는다.
-chrome.tabs.onUpdated.addListener((tabId, changeInfo) => {
+platform.api.tabs.onUpdated.addListener((tabId, changeInfo) => {
     if (changeInfo.url?.startsWith('https://canvas.ssu.ac.kr/')) {
         clearCapturedMp4(tabId);
     }
 });
 
-chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
+platform.api.runtime.onMessage.addListener((message, sender, sendResponse) => {
     console.log('background received message:', message);
     if (message.target !== 'background') return;
 
@@ -151,15 +154,12 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
                 sendResponse({ downloadId: null, errorMessage: '지원하지 않는 영상 URL입니다.' });
                 return;
             }
-            chrome.downloads.download({
+            platform.download({
                 url: videoUrl,
                 filename,
                 saveAs: true,
                 conflictAction: 'uniquify'
-            }, (downloadId) => {
-                const errorMessage = chrome.runtime.lastError?.message ?? null;
-                sendResponse({ downloadId: downloadId ?? null, errorMessage });
-            });
+            }).then(sendResponse);
             return true;
         }
         default:
@@ -224,7 +224,7 @@ async function completeVideoProgress(data) {
 }
 
 function sendMessageToPopup(type, data) {
-    chrome.runtime.sendMessage({target: 'popup', type, data});
+    platform.api.runtime.sendMessage({target: 'popup', type, data});
 }
 
 // file

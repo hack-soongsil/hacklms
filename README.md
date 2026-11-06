@@ -6,6 +6,24 @@
 
 [Chrome 웹 스토어](https://chromewebstore.google.com/detail/hack-lms/ogjjhamelnijhhnfjjbpmjjjjdeebmoi)
 
+## 브라우저별 빌드
+
+Bash와 `jq`가 필요합니다. `VERSION`을 수정한 뒤 `bash build.sh`를 실행하면
+`manifests/chrome.json`과 `manifests/safari.json`에 버전을 주입하고, `src`와 `images`를
+통째로 복사하여 `dist/chrome`과 `dist/safari`를 생성합니다.
+Chrome에서는 `dist/chrome`을 압축 해제된 확장 프로그램으로 로드합니다.
+Safari 산출물은 macOS의 Safari Web Extension 변환·앱 패키징 및 실기기 검증이 추가로 필요합니다.
+
+브라우저 API 차이는 `src/platform.js`에서 처리합니다. 해당 API가 없는 환경의
+다운로드, Referer 변경, 네트워크 요청 캡처, 세션 저장은 TODO 상태입니다.
+다운로드는 미구현 오류를 반환하고, 나머지 TODO는 작업을 수행하지 않습니다.
+세션 저장 API가 없으면 저장된 URL을 복원하지 못하며 기존 메모리 캐시만 사용합니다.
+Safari manifest는 현재 `downloads`, `webRequest`, `declarativeNetRequest` 권한을
+요청하지 않습니다. 따라서 이 API에 의존하는 기능은 Safari에서 지원 완료 상태가 아닙니다.
+실제 Safari에서의 확장 로드와 LMS 연동은 아직 검증하지 않았습니다.
+
+공통 모듈의 모의 검사는 `node --test tests/platform.test.cjs`로 실행합니다.
+
 ## 주요 기능
 
 - **동영상 학습 완료시키기** - 동영상 강의 학습 진도율을 100%로 만듭니다.

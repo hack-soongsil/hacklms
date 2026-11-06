@@ -96,7 +96,7 @@ const guard = (e) => { e.stopImmediatePropagation(); };
 // popup을 반복해 열어도 재생 클릭을 지나치게 자주 보내지 않는다.
 let lastAutoPlayAttempt = 0;
 
-chrome.runtime.onMessage.addListener(async (message, sender, sendResponse) => {
+platform.api.runtime.onMessage.addListener(async (message, sender, sendResponse) => {
     if (message.target !== 'video-iframe') return;
     switch (message.type) {
         case "get-video-info": {

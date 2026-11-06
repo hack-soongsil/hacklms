@@ -9,7 +9,7 @@ function getToken() {
 }
 
 async function findVideoFrame(tabId) {
-    const frames = await chrome.scripting.executeScript({
+    const frames = await platform.api.scripting.executeScript({
         target: { tabId, allFrames: true },
         func: () => ({ hostname: location.hostname, pathname: location.pathname })
     });
@@ -30,7 +30,7 @@ async function findVideoFrame(tabId) {
 }
 
 async function sendMessageToVideoFrame(tabId, frameId, type, data) {
-    return await chrome.tabs.sendMessage(
+    return await platform.api.tabs.sendMessage(
         tabId,
         { target: 'video-iframe', type, data },
         { frameId }
@@ -47,11 +47,11 @@ async function getVideoUrlFromFrame(tabId, frameId) {
 }
 
 document.addEventListener('DOMContentLoaded', async () => {
-    document.querySelector('h3').textContent = `Hack LMS v${chrome.runtime.getManifest().version}`;
+    document.querySelector('h3').textContent = `Hack LMS v${platform.api.runtime.getManifest().version}`;
     const mainContent = document.getElementById('mainContent');
     const errorContent = document.getElementById('errorContent');
 
-    const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
+    const [tab] = await platform.api.tabs.query({ active: true, currentWindow: true });
 
     if (!tab.url || !tab.url.includes('canvas.ssu.ac.kr')) {
         mainContent.style.display = 'none';
@@ -59,7 +59,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         return;
     }
 
-    const results = await chrome.scripting.executeScript({
+    const results = await platform.api.scripting.executeScript({
         target: { tabId: tab.id },
         func: getToken
     });
@@ -111,7 +111,7 @@ document.addEventListener('DOMContentLoaded', async () => {
             downloadBtn.disabled = true;
             try {
                 downloadBtn.textContent = '다운로드 요청 중...';
-                const response = await chrome.runtime.sendMessage({
+                const response = await platform.api.runtime.sendMessage({
                     target: 'background',
                     type: 'download-video',
                     data: { videoUrl, filename }
@@ -193,7 +193,7 @@ function formatSeconds(seconds) {
     return `${String(minutes).padStart(2, '0')}:${String(secs).padStart(2, '0')}`;
 }
 
-chrome.runtime.onMessage.addListener((message) => {
+platform.api.runtime.onMessage.addListener((message) => {
     console.log('popup received message:', message);
     if (message.target !== 'popup') return;
 
@@ -234,14 +234,11 @@ chrome.runtime.onMessage.addListener((message) => {
 });
 
 function sendMessageToBackground(type, data) {
-    chrome.runtime.sendMessage({target: 'background', type, data});
+    platform.api.runtime.sendMessage({target: 'background', type, data});
 }
 
 function getCapturedMp4(tabId) {
-    return new Promise((resolve) => {
-        chrome.runtime.sendMessage(
-            { target: 'background', type: 'get-captured-mp4', data: { tabId } },
-            (resp) => resolve(resp?.videoUrl ?? null)
-        );
-    });
+    return platform.sendMessage({
+        target: 'background', type: 'get-captured-mp4', data: { tabId }
+    }).then(resp => resp?.videoUrl ?? null).catch(() => null);
 }
