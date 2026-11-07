@@ -1,3 +1,5 @@
+import { platform } from '../platform.js';
+
 function getToken() {
     const token = document.cookie.split('xn_api_token=').at(1)?.split(';')?.at(0);
     if (!token) {
@@ -79,13 +81,12 @@ document.addEventListener('DOMContentLoaded', async () => {
     document.getElementById('videoTitle').textContent = videoTitle || '제목 없음';
 
     // 동영상 URL 가져오기 및 표시
-    // background의 webRequest listener가 캐시한 mp4 URL을 조회
+    // webRequest 캡처는 비활성화하고 영상 프레임에서 URL을 조회한다.
     // 파일명/경로가 다양함 (screen.mp4, main_(uuid).mp4 / contents, contents31, ssu-toast vs ssuin-object 등)
-    // 캐시 비어있으면 autoplay 트리거 후 일정시간 polling
     const videoUrlElement = document.getElementById('videoUrl');
     const downloadBtn = document.getElementById('downloadBtn');
 
-    let videoUrl = await getVideoUrlFromFrame(tab.id, frameId) || await getCapturedMp4(tab.id);
+    let videoUrl = await getVideoUrlFromFrame(tab.id, frameId) /* || await getCapturedMp4(tab.id) */;
     if (!videoUrl) {
         videoUrlElement.textContent = '영상 URL 캡처 중...';
         videoUrlElement.style.color = '#999';
@@ -98,7 +99,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         const start = Date.now();
         while (!videoUrl && Date.now() - start < 8000) {
             await new Promise(r => setTimeout(r, 300));
-            videoUrl = await getVideoUrlFromFrame(tab.id, frameId) || await getCapturedMp4(tab.id);
+            videoUrl = await getVideoUrlFromFrame(tab.id, frameId) /* || await getCapturedMp4(tab.id) */;
         }
     }
 
@@ -237,8 +238,8 @@ function sendMessageToBackground(type, data) {
     platform.api.runtime.sendMessage({target: 'background', type, data});
 }
 
-function getCapturedMp4(tabId) {
-    return platform.sendMessage({
-        target: 'background', type: 'get-captured-mp4', data: { tabId }
-    }).then(resp => resp?.videoUrl ?? null).catch(() => null);
-}
+// function getCapturedMp4(tabId) {
+//     return platform.sendMessage({
+//         target: 'background', type: 'get-captured-mp4', data: { tabId }
+//     }).then(resp => resp?.videoUrl ?? null).catch(() => null);
+// }

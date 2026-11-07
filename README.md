@@ -22,7 +22,7 @@ Safari manifest는 현재 `downloads`, `webRequest`, `declarativeNetRequest` 권
 요청하지 않습니다. 따라서 이 API에 의존하는 기능은 Safari에서 지원 완료 상태가 아닙니다.
 실제 Safari에서의 확장 로드와 LMS 연동은 아직 검증하지 않았습니다.
 
-공통 모듈의 모의 검사는 `node --test tests/platform.test.cjs`로 실행합니다.
+공통 모듈의 모의 검사는 `node --experimental-vm-modules --test tests/platform.test.cjs`로 실행합니다.
 
 ## 주요 기능
 

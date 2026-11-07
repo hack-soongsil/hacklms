@@ -15,5 +15,7 @@ for target in chrome safari; do
         "$root/manifests/$target.json" > "$output/manifest.json"
     cp -R -- "$root/src" "$root/images" "$output/"
 
+    zip -r dist/$target.zip dist/$target/
+    
     echo "빌드 완료: $output"
 done

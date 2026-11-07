@@ -96,7 +96,8 @@ const guard = (e) => { e.stopImmediatePropagation(); };
 // popup을 반복해 열어도 재생 클릭을 지나치게 자주 보내지 않는다.
 let lastAutoPlayAttempt = 0;
 
-platform.api.runtime.onMessage.addListener(async (message, sender, sendResponse) => {
+const api = typeof browser !== 'undefined' ? browser : chrome;
+api.runtime.onMessage.addListener(async (message, sender, sendResponse) => {
     if (message.target !== 'video-iframe') return;
     switch (message.type) {
         case "get-video-info": {
@@ -111,7 +112,7 @@ platform.api.runtime.onMessage.addListener(async (message, sender, sendResponse)
             break;
         }
         case "trigger-autoplay": {
-            // background webRequest listener가 mp4 패킷을 캡처하도록 재생 버튼 클릭
+            // 플레이어에 영상 URL이 설정되도록 재생 버튼 클릭
             const directUrl = getVideoUrl();
             if (directUrl) {
                 sendResponse({ triggered: false, videoUrl: directUrl });

@@ -1,5 +1,5 @@
 // Shared by popup, content scripts and background contexts (no DOM dependencies).
-globalThis.platform = (() => {
+export const platform = (() => {
     const usesBrowserNamespace = typeof browser !== 'undefined';
     const api = usesBrowserNamespace ? browser : chrome;
 

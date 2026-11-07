@@ -2,6 +2,7 @@
     "manifest_version": 3,
     "name": "Hack LMS",
     "description": "Utilies for SSU LMS",
+    "version": "0.0.0",
     "icons": {
         "128": "images/canvas.png"
     },
@@ -20,12 +21,13 @@
     "content_scripts": [
         {
             "matches": ["https://commons.ssu.ac.kr/*"],
-            "js": ["src/platform.js", "src/video-iframe-listener.js"],
+            "js": ["src/video-iframe-listener.js"],
             "all_frames": true
         }
     ],
     "background": {
-        "scripts": ["src/platform.js", "src/background.js"],
+        "scripts": ["src/background.js"],
+        "type": "module",
         "persistent": false
     }
 }
