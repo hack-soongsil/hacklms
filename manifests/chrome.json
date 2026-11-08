@@ -9,7 +9,6 @@
     "permissions": [
         "scripting",
         "downloads",
-        "declarativeNetRequest",
         "webRequest",
         "storage"
     ],

@@ -1,3 +1,4 @@
+/*
 import { platform } from './platform.js';
 
 // background.js에서 이 모듈을 import하면 캡처와 캐시 정리를 등록한다.
@@ -86,3 +87,4 @@ platform.api.tabs.onUpdated.addListener((tabId, changeInfo) => {
     }
 });
 
+*/
