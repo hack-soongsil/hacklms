@@ -4,7 +4,9 @@ export const platform = (() => {
     const api = usesBrowserNamespace ? browser : chrome;
 
     async function download(options) {
-        if (!api.downloads?.download) return downloadUnsupported(options);
+        if (!api.downloads?.download) {
+            return { downloadId: null, errorMessage: '다운로드 API를 지원하지 않는 브라우저입니다.' };
+        }
         if (usesBrowserNamespace) {
             try {
                 const downloadId = await api.downloads.download(options);
@@ -21,21 +23,8 @@ export const platform = (() => {
         });
     }
 
-    function downloadUnsupported(options) {
-        // TODO: Implement a download path for browsers without the downloads API.
-        return { downloadId: null, errorMessage: '이 브라우저의 다운로드 기능은 아직 구현되지 않았습니다.' };
+    async function openVideoPopup(options) {
     }
-
-    // function updateDynamicRules(rules) {
-    //     if (api.declarativeNetRequest?.updateDynamicRules) {
-    //         return api.declarativeNetRequest.updateDynamicRules(rules);
-    //     }
-    //     return updateDynamicRulesUnsupported(rules);
-    // }
-
-    // function updateDynamicRulesUnsupported(rules) {
-    //     // TODO: Implement Referer handling where declarativeNetRequest is unavailable.
-    // }
 
     // function onBeforeRequest(listener, filter) {
     //     if (api.webRequest?.onBeforeRequest) {

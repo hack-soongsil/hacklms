@@ -1,30 +1,30 @@
 import { platform } from './platform.js';
 // import { getCapturedMp4 } from './video-url-capture.js';
 
-// const REFERER_RULE_ID = 1;
+const REFERER_RULE_ID = 1;
 
-// async function setupRefererRule() {
-//     await platform.updateDynamicRules({
-//         removeRuleIds: [REFERER_RULE_ID],
-//         addRules: [{
-//             id: REFERER_RULE_ID,
-//             priority: 1,
-//             action: {
-//                 type: 'modifyHeaders',
-//                 requestHeaders: [
-//                     { header: 'Referer', operation: 'set', value: 'https://commons.ssu.ac.kr/' }
-//                 ]
-//             },
-//             condition: {
-//                 urlFilter: '||commonscdn.com/',
-//                 resourceTypes: ['xmlhttprequest', 'media', 'other', 'main_frame', 'sub_frame']
-//             }
-//         }]
-//     });
-// }
+async function setupRefererRule() {
+    await platform.api.declarativeNetRequest.updateDynamicRules({
+        removeRuleIds: [REFERER_RULE_ID],
+        addRules: [{
+            id: REFERER_RULE_ID,
+            priority: 1,
+            action: {
+                type: 'modifyHeaders',
+                requestHeaders: [
+                    { header: 'Referer', operation: 'set', value: 'https://commons.ssu.ac.kr/' }
+                ]
+            },
+            condition: {
+                urlFilter: '||commonscdn.com/',
+                resourceTypes: ['xmlhttprequest', 'media', 'other', 'main_frame', 'sub_frame']
+            }
+        }]
+    });
+}
 
-// platform.api.runtime.onInstalled.addListener(setupRefererRule);
-// platform.api.runtime.onStartup.addListener(setupRefererRule);
+platform.api.runtime.onInstalled.addListener(setupRefererRule);
+platform.api.runtime.onStartup.addListener(setupRefererRule);
 
 const PLAYER_ASSET_PATTERN = /\/uniplayer\/(?:intro|preloader)\.mp4(?:[?#]|$)/i;
 const MP4_PATTERN = /\.mp4(?:[?#]|$)/i;

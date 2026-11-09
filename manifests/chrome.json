@@ -7,10 +7,11 @@
         "128": "images/canvas.png"
     },
     "permissions": [
-        "scripting",
+        "declarativeNetRequest",
         "downloads",
-        "webRequest",
-        "storage"
+        "scripting",
+        "storage",
+        "webRequest"
     ],
     "host_permissions": [
         "*://canvas.ssu.ac.kr/*",

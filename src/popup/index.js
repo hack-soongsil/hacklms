@@ -107,28 +107,33 @@ document.addEventListener('DOMContentLoaded', async () => {
         videoUrlElement.textContent = videoUrl;
         downloadBtn.disabled = false;
         downloadBtn.addEventListener('click', async () => {
-            const originalText = downloadBtn.textContent;
+            if (!platform.api.downloads?.download) {
+                alert('새 탭에서 동영상이 열립니다.\n\n동영상 플레이어의 설정 또는 더보기 메뉴에서 다운로드를 선택하세요. 브라우저에 따라 메뉴 이름과 위치가 다를 수 있습니다.');
+                await platform.api.tabs.create({ url: videoUrl });
+                return;
+            }
+            // const originalText = downloadBtn.textContent;
             const filename = `${videoTitle || 'video'}.mp4`;
             downloadBtn.disabled = true;
             try {
-                downloadBtn.textContent = '다운로드 요청 중...';
+                // downloadBtn.textContent = '다운로드 요청 중...';
                 const response = await platform.api.runtime.sendMessage({
                     target: 'background',
                     type: 'download-video',
                     data: { videoUrl, filename }
                 });
-                if (!response?.downloadId) {
-                    throw new Error(response?.errorMessage || '다운로드를 시작하지 못했습니다.');
-                }
-                downloadBtn.textContent = '다운로드 시작됨';
+                // // if (!response?.downloadId) {
+                // //     throw new Error(response?.errorMessage || '다운로드를 시작하지 못했습니다.');
+                // // }
+                // downloadBtn.textContent = '다운로드 시작됨';
             } catch (err) {
                 alert(`다운로드 실패: ${err.message}`);
             } finally {
                 downloadBtn.disabled = false;
-                setTimeout(() => { downloadBtn.textContent = originalText; }, 1500);
+                // setTimeout(() => { downloadBtn.textContent = originalText; }, 1500);
             }
         });
-        downloadBtn.textContent = '동영상 다운로드';
+        downloadBtn.textContent = platform.api.downloads?.download ? '동영상 다운로드' : '새 탭에서 열기';
     } else {
         videoUrlElement.textContent = '영상 URL을 잡지 못했습니다. 페이지에서 영상을 한 번 재생한 뒤 popup을 다시 열어주세요.';
         videoUrlElement.style.cursor = 'default';
