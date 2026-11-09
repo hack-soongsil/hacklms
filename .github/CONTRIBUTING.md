@@ -42,9 +42,9 @@ Chrome 확장 프로그램을 실제 브라우저에서 확인하려면 다음 �
 
 실제 Safari 테스트에는 Mac이 필요합니다. `Add Temporary Extension…` 메뉴가 있는 Safari에서는 `dist/safari/` 폴더를 직접 불러올 수 있으므로 로컬 테스트를 위한 Xcode 프로젝트 생성이나 앱 패키징은 필요하지 않습니다.
 
-1. 빌드된 `dist/safari/` 폴더 전체를 Mac에 준비합니다. 다른 컴퓨터에서 빌드했다면 폴더를 복사합니다.
-2. Safari의 **설정 > 고급**에서 **웹 개발자용 기능 보기(Show features for web developers)**를 켭니다.
-3. **설정 > 개발자(Developer) > Add Temporary Extension…**을 선택합니다. 서명되지 않은 확장에 대한 인증 요청이 나오면 승인합니다.
+1. 빌드된 `dist/safari/` 폴더 전체를 Mac에 준비합니다.
+2. Safari의 **설정 > 고급**에서 **웹 개발자용 기능 보기(Show features for web developers)** 를 켭니다.
+3. **설정 > 개발자(Developer) > Add Temporary Extension…** 을 선택합니다. 서명되지 않은 확장에 대한 인증 요청이 나오면 승인합니다.
 4. `manifest.json`이 바로 들어 있는 `dist/safari/` 폴더를 선택합니다.
 5. **설정 > 확장 프로그램**에서 Hack LMS를 활성화하고, LMS(`canvas.ssu.ac.kr`), Commons(`commons.ssu.ac.kr`), 영상 CDN(`*.commonscdn.com`)에 필요한 사이트 접근을 허용합니다. Safari 프로필을 사용한다면 테스트할 프로필에서도 활성화합니다.
 6. LMS 강의 페이지를 새로고침하고 확장 프로그램 팝업을 열어 기능을 확인합니다.
@@ -66,7 +66,7 @@ xcrun safari-web-extension-packager "/절대경로/dist/safari"
 ### Chrome
 
 - 팝업(`src/popup/index.js`): 확장 프로그램 팝업을 연 뒤 팝업 내부를 우클릭하고 **검사**를 선택합니다.
-- 백그라운드(`src/background.js`): `chrome://extensions`의 Hack LMS 카드에서 **서비스 워커(service worker)** 링크를 클릭합니다. 로드 오류가 있으면 카드의 **오류(Errors)**도 확인합니다.
+- 백그라운드(`src/background.js`): `chrome://extensions`의 Hack LMS 카드에서 **서비스 워커(service worker)** 링크를 클릭합니다.
 - 콘텐츠 스크립트(`src/video-iframe-listener.js`): LMS 강의 페이지에서 DevTools를 열고 **Sources > Content scripts**에서 해당 파일을 찾습니다. Console에서 직접 코드를 실행하려면 실행 컨텍스트를 Commons 영상 프레임의 Hack LMS 콘텐츠 스크립트로 선택합니다.
 
 서비스 워커 검사 창을 열어 두면 워커가 활성 상태를 유지하므로, 검사 창을 닫은 상태에서도 기능을 확인합니다. 자세한 내용은 [Chrome 확장 디버깅 안내](https://developer.chrome.com/docs/extensions/get-started/tutorial/debug)를 참고하세요.
@@ -75,7 +75,7 @@ xcrun safari-web-extension-packager "/절대경로/dist/safari"
 
 위 테스트 절차의 **웹 개발자용 기능 보기**를 켠 상태에서 메뉴 막대의 **개발자용(Develop)** 메뉴를 사용합니다. 메뉴 이름은 Safari 버전과 표시 언어에 따라 다를 수 있습니다.
 
-- 팝업(`src/popup/index.js`): 확장 프로그램 팝업을 연 뒤 팝업 내부를 Control-클릭하고 **요소 점검(Inspect Element)**을 선택합니다.
+- 팝업(`src/popup/index.js`): 확장 프로그램 팝업을 연 뒤 팝업 내부를 Control-클릭하고 **요소 점검(Inspect Element)** 을 선택합니다.
 - 백그라운드(`src/background.js`): **Develop > Web Extension Background Content**에서 Hack LMS와 테스트 중인 프로필을 선택합니다. 이전 버전에서는 **Web Extension Background Pages** 메뉴를 사용합니다.
 - 콘텐츠 스크립트(`src/video-iframe-listener.js`): LMS 강의 페이지에서 **Develop > Show Web Inspector**를 선택하고, **Sources > Extension Scripts**에서 해당 파일을 찾습니다. 콘솔의 실행 컨텍스트도 Commons 영상 프레임과 확장 프로그램에 맞게 선택합니다.
 
