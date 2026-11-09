@@ -1,6 +1,6 @@
 # 코드 구조
 
-Hack LMS는 Manifest V3 기반 Chrome 확장 프로그램입니다. 별도 빌드 과정 없이 JavaScript와 HTML 파일을 직접 로드하며, 이 저장소에는 별도의 백엔드 서버 구현이 없습니다.
+Hack LMS는 Manifest V3 기반 Chrome 및 Safari 확장 프로그램입니다. `bash build.sh`로 브라우저별 매니페스트와 소스, 이미지를 `dist/chrome/`과 `dist/safari/`에 구성하며, 이 저장소에는 별도의 백엔드 서버 구현이 없습니다.
 
 이 문서는 현재 구현을 설명합니다. 개발 환경 설정과 기여 절차는 [기여 가이드](../.github/CONTRIBUTING.md)를 참고하세요.
 
@@ -8,12 +8,12 @@ Hack LMS는 Manifest V3 기반 Chrome 확장 프로그램입니다. 별도 빌�
 
 | 구성 요소 | 역할 | 코드 |
 | --- | --- | --- |
-| 팝업 | 사용자 입력을 받고, 현재 탭의 영상 정보를 찾아 결과를 표시합니다. | [popup/index.js](/popup/index.js), [popup/index.html](../popup/index.html) |
-| 서비스 워커 | 영상 요청을 감지하고 다운로드와 진도 API 호출을 처리합니다. | [background.js](/background.js) |
-| 콘텐츠 스크립트 | 영상 플레이어 프레임 안에서 정보를 읽고 재생 속도를 제어합니다. | [video-iframe-listener.js](/video-iframe-listener.js) |
-| 확장 설정 | 각 구성 요소의 실행 위치와 접근 권한을 선언합니다. | [manifest.json](/manifest.json) |
+| 팝업 | 사용자 입력을 받고, 현재 탭의 영상 정보를 찾아 결과를 표시합니다. | [popup/index.js](../src/popup/index.js), [popup/index.html](../src/popup/index.html) |
+| 백그라운드 | 영상 요청을 감지하고 다운로드와 진도 API 호출을 처리합니다. Chrome에서는 서비스 워커, Safari에서는 비영구 백그라운드 스크립트로 실행됩니다. | [background.js](../src/background.js) |
+| 콘텐츠 스크립트 | 영상 플레이어 프레임 안에서 정보를 읽고 재생 속도를 제어합니다. | [video-iframe-listener.js](../src/video-iframe-listener.js) |
+| 확장 설정 | 각 구성 요소의 실행 위치와 접근 권한을 선언합니다. | [Chrome 매니페스트](../manifests/chrome.json), [Safari 매니페스트](../manifests/safari.json) |
 
-팝업, 백그라운드 서비스 워커, 콘텐츠 스크립트는 서로 메시지를 주고받으며 동작합니다.
+팝업, 백그라운드, 콘텐츠 스크립트는 서로 메시지를 주고받으며 동작합니다. 백그라운드는 두 브라우저 모두 `type: "module"`로 설정되어 ES 모듈을 사용합니다.
 
 ### 실행 위치와 통신
 
@@ -35,15 +35,16 @@ Hack LMS는 Manifest V3 기반 Chrome 확장 프로그램입니다. 별도 빌�
 
 현재 도메인과 API 경로는 코드에 직접 지정되어 있습니다.
 
-| manifest 권한 | 용도 |
-| --- | --- |
-| `scripting` | 현재 탭의 쿠키 조회 및 프레임 위치 확인 |
-| `downloads` | MP4 다운로드 실행 |
-| `declarativeNetRequest` | CDN 요청의 Referer 헤더 변경 규칙 등록 |
-| `webRequest` | CDN 영상 요청 및 Canvas 메인 프레임 로드 감지 |
-| `storage` | 캡처한 영상 URL을 `chrome.storage.session`에 보관 |
+| manifest 권한 | 브라우저 | 용도 |
+| --- | --- | --- |
+| `scripting` | Chrome, Safari | 현재 탭의 쿠키 조회 및 프레임 위치 확인 |
+| `downloads` | Chrome | MP4 다운로드 실행 |
+| `declarativeNetRequest` | Chrome | CDN 요청의 Referer 헤더 변경 규칙 등록 |
+| `declarativeNetRequestWithHostAccess` | Safari | 사이트 접근 권한이 있는 CDN 요청의 Referer 헤더 변경 규칙 등록 |
+| `webRequest` | Chrome | CDN 영상 요청 및 Canvas 메인 프레임 로드 감지 |
+| `storage` | Chrome, Safari | 캡처한 영상 URL을 `chrome.storage.session`에 보관 |
 
-[manifest.json](/manifest.json)의 `host_permissions`에는 위 세 도메인 패턴이 등록되어 있습니다. 서비스 워커는 설치/업데이트 및 브라우저 시작 시 `setupRefererRule()`을 실행합니다. 이 규칙은 `commonscdn.com`에 대한 지정된 요청 유형의 Referer를 `https://commons.ssu.ac.kr/`로 설정합니다.
+[Chrome 매니페스트](../manifests/chrome.json)와 [Safari 매니페스트](../manifests/safari.json)의 `host_permissions`에는 위 세 도메인 패턴이 등록되어 있습니다. 백그라운드는 설치/업데이트 및 브라우저 시작 시 `setupRefererRule()`을 실행합니다. 이 규칙은 `commonscdn.com`에 대한 지정된 요청 유형의 Referer를 `https://commons.ssu.ac.kr/`로 설정합니다.
 
 ## 주요 흐름과 코드 진입점
 
@@ -51,8 +52,8 @@ Hack LMS는 Manifest V3 기반 Chrome 확장 프로그램입니다. 별도 빌�
 
 팝업이 열리면 활성 탭에서 토큰을 읽고 영상 프레임을 찾습니다. 선택한 프레임에서 영상 정보를 받아 화면을 구성하고, 필요한 정보가 있는 경우 진도를 조회합니다. 영상 감지와 진도 조회 가능 여부는 별도로 판단합니다.
 
-- [popup/index.js](/popup/index.js): `getToken()`, `findVideoFrame()`
-- [video-iframe-listener.js](/video-iframe-listener.js): `getVideoInfo()`
+- [popup/index.js](../src/popup/index.js): `getToken()`, `findVideoFrame()`
+- [video-iframe-listener.js](../src/video-iframe-listener.js): `getVideoInfo()`
 
 ### 영상 URL 확보와 다운로드
 
@@ -60,9 +61,10 @@ Hack LMS는 Manifest V3 기반 Chrome 확장 프로그램입니다. 별도 빌�
 
 확보한 URL로 팝업이 다운로드를 요청하면 서비스 워커가 실제 다운로드를 실행합니다. 캡처한 URL은 탭별로 관리하며, 서비스 워커가 종료되어도 같은 브라우저 세션에서 다시 사용할 수 있도록 세션 저장소에도 보관합니다.
 
-- [popup/index.js](/popup/index.js): `getVideoUrlFromFrame()`, `getCapturedMp4()`, 다운로드 버튼 처리
-- [video-iframe-listener.js](/video-iframe-listener.js): `getVideoUrl()`, `trigger-autoplay` 메시지 처리
-- [background.js](/background.js): `webRequest` 리스너, `storeCapturedMp4()`, `clearCapturedMp4()`, `download-video` 메시지 처리
+- [popup/index.js](../src/popup/index.js): `getVideoUrlFromFrame()`, `getCapturedMp4()`, 다운로드 버튼 처리
+- [video-iframe-listener.js](../src/video-iframe-listener.js): `getVideoUrl()`, `trigger-autoplay` 메시지 처리
+- [video-url-capture.js](../src/video-url-capture.js): `webRequest` 리스너, `storeCapturedMp4()`, `clearCapturedMp4()`
+- [background.js](../src/background.js): `download-video` 메시지 처리
 
 CDN 요청의 Referer 헤더를 설정하는 규칙도 서비스 워커에서 등록합니다. 관련 코드는 `setupRefererRule()`을 참고하세요.
 
@@ -70,12 +72,12 @@ CDN 요청의 Referer 헤더를 설정하는 규칙도 서비스 워커에서 �
 
 팝업의 배속 입력을 콘텐츠 스크립트에 전달하고, 콘텐츠 스크립트가 실제 영상 요소를 제어합니다.
 
-- [popup/index.js](/popup/index.js): 배속 슬라이더 이벤트 처리
-- [video-iframe-listener.js](/video-iframe-listener.js): `getVideoElement()`, `get-video-playback-rate` 및 `set-video-playback-rate` 메시지 처리
+- [popup/index.js](../src/popup/index.js): 배속 슬라이더 이벤트 처리
+- [video-iframe-listener.js](../src/video-iframe-listener.js): `getVideoElement()`, `get-video-playback-rate` 및 `set-video-playback-rate` 메시지 처리
 
 ### 진도 조회와 학습 완료 처리
 
 팝업이 전달한 토큰과 강의 정보를 사용해 서비스 워커가 LearningX API를 호출합니다. 조회 결과는 별도 메시지로 팝업에 전달합니다. 학습 완료 기능은 영상 프레임에서 얻은 URL을 통해 진도 갱신 요청을 수행합니다.
 
-- [background.js](/background.js): `getVideoStatus()`, `completeVideoProgress()`, `sendMessageToPopup()`
-- [popup/index.js](/popup/index.js): `set-video-progress` 및 `complete-video-progress-error` 메시지 처리
+- [background.js](../src/background.js): `getVideoStatus()`, `completeVideoProgress()`, `sendMessageToPopup()`
+- [popup/index.js](../src/popup/index.js): `set-video-progress` 및 `complete-video-progress-error` 메시지 처리
